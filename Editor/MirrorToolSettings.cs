@@ -1,9 +1,9 @@
-﻿// Register a SettingsProvider using IMGUI for the drawing framework:
-using System;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
-[InitializeOnLoad]
+namespace MirrorRigTools
+{
+	[InitializeOnLoad]
 public class Startup
 {
 	static Startup()
@@ -89,4 +89,5 @@ static class MirrorToolSettings
 			MirrorRig.RIGHT_START= settings.RIGHT_START;
 		}
 	}
+}
 }

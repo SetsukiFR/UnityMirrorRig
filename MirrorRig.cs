@@ -12,204 +12,207 @@ using UnityEditor;
 #endif
 using UnityEngine;
 
-public class MirrorRig : MonoBehaviour
+namespace MirrorRigTools
 {
-	public static Vector3 ReflectionOverPlane(Vector3 point, Plane plane)
+	public class MirrorRig : MonoBehaviour
 	{
-		Vector3 pointOnPlane = plane.ClosestPointOnPlane(point);
-		return pointOnPlane + (pointOnPlane - point);
-	}
-
-	[System.Serializable]
-	public class MirrorPair
-	{
-		public string name;
-		public Vector3 offset;
-		public Transform left;
-		public Transform right;
-		public Transform commonParent;
-		public Vector3 planeNormal;
-		public MirrorPair(Transform left, Transform right,string name)
+		public static Vector3 ReflectionOverPlane(Vector3 point, Plane plane)
 		{
-			this.left = left;
-			this.right = right;
-			this.name = name;
-			FindCommonParent();
-			planeNormal = left.position - right.position;
-			planeNormal = Quaternion.Inverse(commonParent.rotation) * planeNormal;
-			CalculateOffset();
+			Vector3 pointOnPlane = plane.ClosestPointOnPlane(point);
+			return pointOnPlane + (pointOnPlane - point);
 		}
 
-		private void CalculateOffset()
+		[System.Serializable]
+		public class MirrorPair
 		{
-			Plane mirror = GetMirror();
-
-			Vector3 lookatTarget = left.position + left.forward;
-			lookatTarget = ReflectionOverPlane( lookatTarget, mirror );
-
-
-			Vector3 up = left.position + left.up;
-			up = ReflectionOverPlane(up, mirror);
-
-			Quaternion originalRotation = right.rotation;
-
-			right.LookAt(lookatTarget, up - right.position);
-
-			offset = -(Quaternion.Inverse(originalRotation)*right.rotation).eulerAngles;
-
-			right.rotation = originalRotation;
-		}
-
-		private void FindCommonParent()
-		{
-			Transform parentL = left.parent;
-			while (parentL != null)
+			public string name;
+			public Vector3 offset;
+			public Transform left;
+			public Transform right;
+			public Transform commonParent;
+			public Vector3 planeNormal;
+			public MirrorPair(Transform left, Transform right, string name)
 			{
-				Transform parentR = right.parent;
-				while (parentR != null)
+				this.left = left;
+				this.right = right;
+				this.name = name;
+				FindCommonParent();
+				planeNormal = left.position - right.position;
+				planeNormal = Quaternion.Inverse(commonParent.rotation) * planeNormal;
+				CalculateOffset();
+			}
+
+			private void CalculateOffset()
+			{
+				Plane mirror = GetMirror();
+
+				Vector3 lookatTarget = left.position + left.forward;
+				lookatTarget = ReflectionOverPlane(lookatTarget, mirror);
+
+
+				Vector3 up = left.position + left.up;
+				up = ReflectionOverPlane(up, mirror);
+
+				Quaternion originalRotation = right.rotation;
+
+				right.LookAt(lookatTarget, up - right.position);
+
+				offset = -(Quaternion.Inverse(originalRotation) * right.rotation).eulerAngles;
+
+				right.rotation = originalRotation;
+			}
+
+			private void FindCommonParent()
+			{
+				Transform parentL = left.parent;
+				while (parentL != null)
 				{
-					if (parentL == parentR)
+					Transform parentR = right.parent;
+					while (parentR != null)
 					{
-						commonParent = parentL;
-						return;
+						if (parentL == parentR)
+						{
+							commonParent = parentL;
+							return;
+						}
+						parentR = parentR.parent;
 					}
-					parentR = parentR.parent;
+					parentL = parentL.parent;
 				}
-				parentL = parentL.parent;
+			}
+
+			public Plane GetMirror()
+			{
+				Vector3 normal = commonParent.rotation * this.planeNormal;
+
+				return new Plane(normal, commonParent.position);
 			}
 		}
-
-		public Plane GetMirror()
-		{
-			Vector3 normal = commonParent.rotation * this.planeNormal;
-
-			return new Plane(normal, commonParent.position);
-		}
-	}
-	[SerializeField] private List<MirrorPair> _pairs = new List<MirrorPair>();
+		[SerializeField] private List<MirrorPair> _pairs = new List<MirrorPair>();
 
 #if UNITY_EDITOR
-	public static string[] LEFT_END; 
-	public static string[] RIGHT_END; 
-	public static string[] LEFT_START;
-	public static string[] RIGHT_START;
+		public static string[] LEFT_END;
+		public static string[] RIGHT_END;
+		public static string[] LEFT_START;
+		public static string[] RIGHT_START;
 
 
-	private void Reset()
-	{
-		_pairs.Clear();
-		GetAllMirrorBones(transform);
-	}
-
-	private void GetAllMirrorBones(Transform transform)
-	{
-		if(GetMirrorObject(transform,out var result))
+		private void Reset()
 		{
-			MirrorPair pair = new MirrorPair(result.left,result.right,result.name);
-			_pairs.Add(pair);
+			_pairs.Clear();
+			GetAllMirrorBones(transform);
 		}
-		foreach(Transform t in transform)
+
+		private void GetAllMirrorBones(Transform transform)
 		{
-			GetAllMirrorBones(t);
-		}
-	}
-
-
-	private bool GetMirrorObject(Transform t,out (Transform left, Transform right, string name) result)
-	{
-		result.left = null;
-		result.right = null;
-		result.name = null;
-
-		int index = -1;
-
-		string replaceFrom=string.Empty,replaceTo=string.Empty;
-
-		for (int i = 0; i < LEFT_END.Length; ++i)
-		{
-			if (t.name.EndsWith(LEFT_END[i]))
+			if (GetMirrorObject(transform, out var result))
 			{
-				index = i;
-				replaceFrom = LEFT_END[i];
-				replaceTo = RIGHT_END[i];
-				result.left = t;
-				result.name = t.name.Remove(t.name.Length - LEFT_END[i].Length);
-				break;
+				MirrorPair pair = new MirrorPair(result.left, result.right, result.name);
+				_pairs.Add(pair);
+			}
+			foreach (Transform t in transform)
+			{
+				GetAllMirrorBones(t);
 			}
 		}
 
-		for (int i = 0; i < LEFT_START.Length; ++i)
+
+		private bool GetMirrorObject(Transform t, out (Transform left, Transform right, string name) result)
 		{
-			if (t.name.StartsWith(LEFT_START[i]))
+			result.left = null;
+			result.right = null;
+			result.name = null;
+
+			int index = -1;
+
+			string replaceFrom = string.Empty, replaceTo = string.Empty;
+
+			for (int i = 0; i < LEFT_END.Length; ++i)
 			{
-				index = i;
-				replaceFrom = LEFT_START[i];
-				replaceTo = RIGHT_START[i];
-				result.name = t.name.Remove(0, LEFT_START[i].Length);
-				result.left = t;
-				break;
+				if (t.name.EndsWith(LEFT_END[i]))
+				{
+					index = i;
+					replaceFrom = LEFT_END[i];
+					replaceTo = RIGHT_END[i];
+					result.left = t;
+					result.name = t.name.Remove(t.name.Length - LEFT_END[i].Length);
+					break;
+				}
 			}
-		}
 
-		
+			for (int i = 0; i < LEFT_START.Length; ++i)
+			{
+				if (t.name.StartsWith(LEFT_START[i]))
+				{
+					index = i;
+					replaceFrom = LEFT_START[i];
+					replaceTo = RIGHT_START[i];
+					result.name = t.name.Remove(0, LEFT_START[i].Length);
+					result.left = t;
+					break;
+				}
+			}
 
-		if (index == -1)
-		{
-			//we don't know this suffix
+
+
+			if (index == -1)
+			{
+				//we don't know this suffix
+				return false;
+			}
+
+			string mirrorName = AnimationUtility.CalculateTransformPath(t, t.root).Replace(replaceFrom, replaceTo);
+			Transform mirror = t.root.Find(mirrorName);
+			if (mirror != null)
+			{
+				if (result.left != null)
+					result.right = mirror;
+				else
+					result.left = mirror;
+				return true;
+			}
 			return false;
 		}
 
-		string mirrorName = AnimationUtility.CalculateTransformPath(t,t.root).Replace(replaceFrom,replaceTo);
-		Transform mirror = t.root.Find(mirrorName);
-		if (mirror != null)
+		public Transform GetMirrorTransform(Transform t)
 		{
-			if (result.left != null)
-				result.right = mirror;
-			else
-				result.left = mirror;
-			return true;
+			foreach (var pair in _pairs)
+			{
+				if (pair.left == t)
+				{
+					return pair.right;
+				}
+				if (pair.right == t)
+				{
+					return pair.left;
+				}
+			}
+			return null;
 		}
-		return false;
-	}
 
-	public Transform GetMirrorTransform(Transform t)
-	{
-		foreach(var pair in _pairs)
+		public Plane GetMirrorPlane(Transform t)
 		{
-			if(pair.left==t)
+			foreach (var pair in _pairs)
 			{
-				return pair.right;
+				if (pair.right == t || pair.left == t)
+				{
+					return pair.GetMirror();
+				}
 			}
-			if(pair.right==t)
-			{
-				return pair.left;
-			}
+			return new Plane();
 		}
-		return null;
-	}
 
-	public Plane GetMirrorPlane(Transform t)
-	{
-		foreach (var pair in _pairs)
+		public Vector3 GetRotationOffset(Transform t)
 		{
-			if (pair.right == t || pair.left == t)
+			foreach (var pair in _pairs)
 			{
-				return pair.GetMirror();
+				if (pair.right == t || pair.left == t)
+				{
+					return pair.offset;
+				}
 			}
+			return Vector3.zero;
 		}
-		return new Plane();
-	}
-
-	public Vector3 GetRotationOffset(Transform t)
-	{
-		foreach (var pair in _pairs)
-		{
-			if (pair.right == t||pair.left == t)
-			{
-				return pair.offset;
-			}
-		}
-		return Vector3.zero;
-	}
 #endif
+	}
 }
