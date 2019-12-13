@@ -117,8 +117,12 @@ namespace MirrorRigTools
 		}
 
 
-		private bool GetMirrorObject(Transform t, out (Transform left, Transform right, string name) result)
+		private bool GetMirrorObject(Transform t, out (Transform left, Transform right, string name) result, (List<int> ignoreStart, List<int> ignoreEnd)? ignores = null)
 		{
+			if (ignores == null)
+			{
+				ignores = (new List<int>(), new List<int>());
+			}
 			result.left = null;
 			result.right = null;
 			result.name = null;
@@ -129,7 +133,7 @@ namespace MirrorRigTools
 
 			for (int i = 0; i < LEFT_END.Length; ++i)
 			{
-				if (t.name.EndsWith(LEFT_END[i]))
+				if (!ignores.Value.ignoreEnd.Contains(i) && t.name.EndsWith(LEFT_END[i]))
 				{
 					index = i;
 					replaceFrom = LEFT_END[i];
@@ -142,7 +146,7 @@ namespace MirrorRigTools
 
 			for (int i = 0; i < LEFT_START.Length; ++i)
 			{
-				if (t.name.StartsWith(LEFT_START[i]))
+				if (!ignores.Value.ignoreStart.Contains(i) && t.name.StartsWith(LEFT_START[i]))
 				{
 					index = i;
 					replaceFrom = LEFT_START[i];
@@ -171,7 +175,7 @@ namespace MirrorRigTools
 					result.left = mirror;
 				return true;
 			}
-			return false;
+			return GetMirrorObject(t, out result, ignores);
 		}
 
 		public Transform GetMirrorTransform(Transform t)
