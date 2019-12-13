@@ -1,6 +1,6 @@
 **MirrorRig for Unity**
 A tool for Unity, generating in-editor tools for easy transform mirroring.
-
+![](https://media.giphy.com/media/U1rnqzNySGOSQ84hxo/source.gif)
 **First Installation**
  - Add the scripts to your project
  - Go In *Project Settings/Mirror Rig Settings*
