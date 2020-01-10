@@ -140,6 +140,7 @@ namespace MirrorRigTools
 					replaceTo = RIGHT_END[i];
 					result.left = t;
 					result.name = t.name.Remove(t.name.Length - LEFT_END[i].Length);
+					ignores.Value.ignoreEnd.Add(i);
 					break;
 				}
 			}
@@ -153,6 +154,7 @@ namespace MirrorRigTools
 					replaceTo = RIGHT_START[i];
 					result.name = t.name.Remove(0, LEFT_START[i].Length);
 					result.left = t;
+					ignores.Value.ignoreStart.Add(i);
 					break;
 				}
 			}
