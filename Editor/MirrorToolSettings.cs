@@ -38,6 +38,13 @@ namespace MirrorRigTools
 					EditorGUILayout.PropertyField(settings.FindProperty("LEFT_END"), new GUIContent("Left"), true);
 					EditorGUILayout.PropertyField(settings.FindProperty("RIGHT_END"), new GUIContent("Right"), true);
 					EditorGUILayout.EndHorizontal();
+
+					EditorGUILayout.Space();
+					EditorGUILayout.LabelField("Mirror Objects containing :");
+					EditorGUILayout.BeginHorizontal();
+					EditorGUILayout.PropertyField(settings.FindProperty("LEFT_CONTAINS"), new GUIContent("Left"), true);
+					EditorGUILayout.PropertyField(settings.FindProperty("RIGHT_CONTAINS"), new GUIContent("Right"), true);
+					EditorGUILayout.EndHorizontal();
 				},
 			};
 

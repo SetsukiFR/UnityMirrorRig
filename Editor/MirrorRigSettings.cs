@@ -13,6 +13,9 @@ public class MirrorRigSettings : ScriptableObject
 	public string[] LEFT_START = new string[] { "l_", "l_", "L_", "L_", "L ", "l ", "left", "Left" };
 	public string[] RIGHT_START = new string[] { "r_", "r_", "R_", "R_", "R ", "r ", "right", "Right" };
 
+	public string[] LEFT_CONTAINS = new string[] { "left ", " left" };
+	public string[] RIGHT_CONTAINS = new string[] { "right ", " right" };
+
 
 
 	internal static MirrorRigSettings GetOrCreateSettings()
@@ -45,6 +48,13 @@ public class MirrorRigSettings : ScriptableObject
 		MirrorRig.LEFT_START = settings.LEFT_START;
 		MirrorRig.RIGHT_END = settings.RIGHT_END;
 		MirrorRig.RIGHT_START = settings.RIGHT_START;
+		MirrorRig.RIGHT_CONTAINS = settings.RIGHT_CONTAINS;
+		MirrorRig.LEFT_CONTAINS= settings.LEFT_CONTAINS;
 	}
-}
+
+		private void OnValidate()
+		{
+			Write();
+		}
+	}
 }

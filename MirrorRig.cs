@@ -95,6 +95,8 @@ namespace MirrorRigTools
 		public static string[] RIGHT_END;
 		public static string[] LEFT_START;
 		public static string[] RIGHT_START;
+		public static string[] LEFT_CONTAINS;
+		public static string[] RIGHT_CONTAINS;
 
 
 		private void Reset()
@@ -117,11 +119,11 @@ namespace MirrorRigTools
 		}
 
 
-		private bool GetMirrorObject(Transform t, out (Transform left, Transform right, string name) result, (List<int> ignoreStart, List<int> ignoreEnd)? ignores = null)
+		private bool GetMirrorObject(Transform t, out (Transform left, Transform right, string name) result, (List<int> ignoreStart, List<int> ignoreEnd, List<int> ignoreContains)? ignores = null)
 		{
 			if (ignores == null)
 			{
-				ignores = (new List<int>(), new List<int>());
+				ignores = (new List<int>(), new List<int>(), new List<int>());
 			}
 			result.left = null;
 			result.right = null;
@@ -144,21 +146,34 @@ namespace MirrorRigTools
 					break;
 				}
 			}
-
-			for (int i = 0; i < LEFT_START.Length; ++i)
-			{
-				if (!ignores.Value.ignoreStart.Contains(i) && t.name.StartsWith(LEFT_START[i]))
+			if(index==-1)
+				for (int i = 0; i < LEFT_START.Length; ++i)
 				{
-					index = i;
-					replaceFrom = LEFT_START[i];
-					replaceTo = RIGHT_START[i];
-					result.name = t.name.Remove(0, LEFT_START[i].Length);
-					result.left = t;
-					ignores.Value.ignoreStart.Add(i);
-					break;
+					if (!ignores.Value.ignoreStart.Contains(i) && t.name.StartsWith(LEFT_START[i]))
+					{
+						index = i;
+						replaceFrom = LEFT_START[i];
+						replaceTo = RIGHT_START[i];
+						result.name = t.name.Remove(0, LEFT_START[i].Length);
+						result.left = t;
+						ignores.Value.ignoreStart.Add(i);
+						break;
+					}
 				}
-			}
-
+			if(index==-1)
+				for (int i = 0; i < LEFT_CONTAINS.Length; ++i)
+				{
+					if (!ignores.Value.ignoreStart.Contains(i) && t.name.Contains(LEFT_CONTAINS[i]))
+					{
+						index = i;
+						replaceFrom = LEFT_CONTAINS[i];
+						replaceTo = RIGHT_CONTAINS[i];
+						result.name = t.name.Replace(LEFT_CONTAINS[i], "");
+						result.left = t;
+						ignores.Value.ignoreContains.Add(i);
+						break;
+					}
+				}
 
 
 			if (index == -1)
